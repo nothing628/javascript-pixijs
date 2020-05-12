@@ -10,6 +10,33 @@ if (module.hot) {
 // and the root stage PIXI.Container
 const app = new PIXI.Application();
 
+app.stage.interactive = true;
+
+const graphics = new PIXI.Graphics();
+let count = 0;
+
+graphics.x = app.renderer.width / 2;
+graphics.y = app.renderer.height / 2;
+
+app.stage.addChild(graphics);
+app.ticker.add(() => {
+  count += 0.1;
+
+  graphics.clear();
+  graphics.lineStyle(1, 0xffff00, 1);
+  // graphics.beginFill(0xffff00, 0.5);
+
+  graphics.moveTo(-120 + Math.sin(count) * 20, -100 + Math.cos(count) * 20);
+  graphics.lineTo(-120 + Math.cos(count) * 20, 100 + Math.sin(count) * 20);
+  graphics.closePath();
+  
+  graphics.moveTo(120 + Math.sin(count) * 20, 100 + Math.cos(count) * 20);
+  graphics.lineTo(120 + Math.cos(count) * 20, -100 + Math.sin(count) * 20);
+  graphics.closePath();
+
+  graphics.rotation = count * 0.1;
+});
+
 // The application will create a canvas element for you that you
 // can then insert into the DOM
 document.body.appendChild(app.view);

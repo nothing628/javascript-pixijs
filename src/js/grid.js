@@ -68,12 +68,23 @@ class GameGrid {
   addBlock(blockId, real_x, real_y) {
     const x = Math.floor(real_x / grid_size) * grid_size;
     const y = Math.floor(real_y / grid_size) * grid_size;
+    const is_exists = this.isBlockExists(x,y);
+
+    if (is_exists) return;  // Avoid rendundant
 
     this.#blocks.push({
       blockId,
       x,
       y,
     });
+  }
+
+  isBlockExists(x, y) {
+    const result = this.#blocks.filter(item => {
+      return item.x === x && item.y === y
+    })
+
+    return result.length > 0;
   }
 }
 

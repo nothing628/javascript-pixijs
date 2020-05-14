@@ -45,11 +45,15 @@ class GameGrid {
       this.graphics.closePath();
     }
   }
-  
+
   redraw_block() {
-    this.#blocks.forEach(item => {
-      console.log(item);
-    })
+    this.#blocks.forEach((item) => {
+      const block = blocks[item.blockId];
+
+      this.graphics.beginFill(block.color, 0.9);
+      this.graphics.drawRect(item.x, item.y, grid_size, grid_size);
+      this.graphics.endFill();
+    });
   }
 
   highlight_grid(real_x, real_y) {

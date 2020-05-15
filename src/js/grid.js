@@ -1,10 +1,12 @@
 import * as PIXI from "pixi.js";
 import blocks from "./blocks";
+import keyboard from './keyboard';
 
 const grid_size = 10;
 
 class GameGrid {
   #blocks = [];
+  #keyboard = null;
   graphics = null;
   width = 600;
   height = 400;
@@ -16,6 +18,10 @@ class GameGrid {
     this.graphics.y = 0;
     this.width = width;
     this.height = height;
+    this.keyboard = new keyboard(37);
+    this.keyboard.press = () => {
+      console.log("Left pressed");
+    }
     this.redraw();
   }
 

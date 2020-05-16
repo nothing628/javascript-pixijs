@@ -1,13 +1,13 @@
 export default class keyboard {
-    code = null
-    isDown = false;
-    isUp  =false;
+    code: number = null
+    isDown: boolean = false;
+    isUp: boolean = false;
     press = null;
     release = null;
 
-    constructor(keyCode) {
+    constructor(keyCode: number) {
         this.code = keyCode;
-        
+
         window.addEventListener("keydown", this.downHandler, false);
         window.addEventListener("keyup", this.upHandler, false);
     }

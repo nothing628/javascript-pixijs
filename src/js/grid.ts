@@ -1,25 +1,25 @@
 import * as PIXI from "pixi.js";
-import blocks from "./blocks";
-import keyboard from './keyboard';
+import blocks, { IBlockLocation, BlockLocation } from "./blocks";
+import Keyboard from './keyboard';
 
 const grid_size = 10;
 
 class GameGrid {
-  #blocks = [];
-  #keyboard = null;
-  graphics = null;
-  width = 600;
-  height = 400;
+  #blocks: IBlockLocation[] = [];
+  #keyboard: Keyboard = null;
+  graphics: PIXI.Graphics = null;
+  width: number = 600;
+  height: number = 400;
 
-  constructor(width, height) {
+  constructor(width: number, height: number) {
     this.#blocks = [];
     this.graphics = new PIXI.Graphics();
     this.graphics.x = 0;
     this.graphics.y = 0;
     this.width = width;
     this.height = height;
-    this.keyboard = new keyboard(37);
-    this.keyboard.press = () => {
+    this.#keyboard = new Keyboard(37);
+    this.#keyboard.press = () => {
       console.log("Left pressed");
     }
     this.redraw();
@@ -53,10 +53,8 @@ class GameGrid {
   }
 
   redraw_block() {
-    this.#blocks.forEach((item) => {
-      const block = blocks[item.blockId];
-
-      this.graphics.beginFill(block.color, 0.9);
+    this.#blocks.forEach((item: IBlockLocation) => {
+      this.graphics.beginFill(item.block.color, 0.9);
       this.graphics.drawRect(item.x, item.y, grid_size, grid_size);
       this.graphics.endFill();
     });
@@ -74,15 +72,13 @@ class GameGrid {
   addBlock(blockId, real_x, real_y) {
     const x = Math.floor(real_x / grid_size) * grid_size;
     const y = Math.floor(real_y / grid_size) * grid_size;
-    const is_exists = this.isBlockExists(x,y);
+    const is_exists = this.isBlockExists(x, y);
+    const block_class = blocks[blockId];
+    const block = new block_class();
 
     if (is_exists) return;  // Avoid rendundant
 
-    this.#blocks.push({
-      blockId,
-      x,
-      y,
-    });
+    this.#blocks.push(new BlockLocation(block, x, y));
   }
 
   isBlockExists(x, y) {
@@ -94,7 +90,7 @@ class GameGrid {
   }
 }
 
-export default (w, h) => {
+export default (w: number, h: number) => {
   const gameGrid = new GameGrid(w, h);
   const sprite = new PIXI.Sprite();
 
@@ -112,7 +108,7 @@ export default (w, h) => {
   sprite.addListener("pointerdown", (evt) => {
     const position = evt.data.global;
 
-    gameGrid.addBlock("copper", position.x, position.y);
+    gameGrid.addBlock("conductor", position.x, position.y);
   });
   sprite.addChild(gameGrid.graphics);
 

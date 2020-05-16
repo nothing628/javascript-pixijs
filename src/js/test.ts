@@ -1,1 +1,0 @@
-export const A: string = "Hi this is the module A";

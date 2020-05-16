@@ -112,7 +112,7 @@ export default (w, h) => {
   sprite.addListener("pointerdown", (evt) => {
     const position = evt.data.global;
 
-    gameGrid.addBlock("power", position.x, position.y);
+    gameGrid.addBlock("copper", position.x, position.y);
   });
   sprite.addChild(gameGrid.graphics);
 

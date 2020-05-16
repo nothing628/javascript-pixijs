@@ -17,13 +17,21 @@ module.exports = {
   node: {
     fs: "empty",
   },
-  entry: ["./src/js/app.js", "./src/style/main.scss"],
+  entry: ["./src/js/main.ts", "./src/style/main.scss"],
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "app.bundle.js",
   },
+  resolve: {
+    extensions: [".tsx", ".ts", ".js"],
+  },
   module: {
     rules: [
+      {
+        test: /\.tsx?$/,
+        use: "ts-loader",
+        exclude: /node_modules/,
+      },
       {
         test: /\.js$/,
         use: [

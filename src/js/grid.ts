@@ -9,10 +9,12 @@ enum SwitchArrow {
   Right,
 }
 
-class GameGrid {
+export class GameGrid {
   private blocks: IBlockLocation[] = [];
   private keyboard: Keyboard = null;
   private active_block_id: string = "power";
+  private pointer_x: number;
+  private pointer_y: number;
   sprite: PIXI.Sprite = null;
   graphics: PIXI.Graphics = null;
   width: number = 600;
@@ -28,7 +30,6 @@ class GameGrid {
     this.keyboard = new Keyboard();
     this.keyboard.press = this.onKeydown.bind(this);
     this.generateSprite();
-    this.redraw();
   }
 
   private generateSprite() {
@@ -42,8 +43,8 @@ class GameGrid {
     sprite.addListener("pointermove", (evt) => {
       const position = evt.data.global;
 
-      this.redraw();
-      this.highlight_grid(position.x, position.y);
+      this.pointer_x = position.x;
+      this.pointer_y = position.y;
     });
     sprite.addListener("pointerdown", (evt) => {
       const position = evt.data.global;
@@ -81,9 +82,24 @@ class GameGrid {
     }
   }
 
-  redraw(): void {
+  private updateBlock(): void {
+    this.blocks.forEach((item) => {
+      item.block.onUpdate();
+    });
+  }
+
+  public redraw(): void {
     this.redraw_grid();
     this.redraw_block();
+    this.highlight_grid(this.pointer_x, this.pointer_y);
+  }
+
+  public tick(delta) {
+    const fps = 60 / delta;
+
+    this.updateBlock();
+    this.redraw();
+    // console.log(fps);
   }
 
   private redraw_grid() {
@@ -110,7 +126,7 @@ class GameGrid {
 
   private redraw_block() {
     this.blocks.forEach((item: IBlockLocation) => {
-      this.graphics.beginFill(item.block.color, 0.9);
+      this.graphics.beginFill(item.block.getRenderColor(), 0.9);
       this.graphics.drawRect(item.x, item.y, grid_size, grid_size);
       this.graphics.endFill();
     });
@@ -145,7 +161,6 @@ class GameGrid {
     return result.length > 0;
   }
 }
-
 export default (w: number, h: number) => {
   const gameGrid = new GameGrid(w, h);
 

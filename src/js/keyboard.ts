@@ -1,40 +1,33 @@
-export default class keyboard {
-    code: number = null
-    isDown: boolean = false;
-    isUp: boolean = false;
-    press = null;
-    release = null;
+export default class Keyboard {
+  isDown: boolean = false;
+  isUp: boolean = true;
+  press: (evt: KeyboardEvent) => any = null;
+  release: (evt: KeyboardEvent) => any = null;
 
-    constructor(keyCode: number) {
-        this.code = keyCode;
+  constructor() {
+    window.addEventListener("keydown", this.downHandler, false);
+    window.addEventListener("keyup", this.upHandler, false);
+  }
 
-        window.addEventListener("keydown", this.downHandler, false);
-        window.addEventListener("keyup", this.upHandler, false);
+  downHandler = (evt: KeyboardEvent) => {
+    evt.preventDefault();
+
+    if (this.isUp && this.press) {
+      this.press(evt);
     }
 
-    downHandler = evt => {
-        if (evt.keyCode === this.code) {
-            if (this.isUp && this.press) {
-                this.press();
-            }
+    this.isDown = true;
+    this.isUp = false;
+  };
 
-            this.isDown = true;
-            this.isUp = false;
-        }
+  upHandler = (evt: KeyboardEvent) => {
+    evt.preventDefault();
 
-        evt.preventDefault();
+    if (this.isDown && this.release) {
+      this.release(evt);
     }
 
-    upHandler = evt => {
-        if (evt.keyCode === this.code) {
-            if (this.isDown && this.release) {
-                this.release();
-            }
-
-            this.isDown = false;
-            this.isUp = true;
-        }
-
-        evt.preventDefault();
-    }
+    this.isDown = false;
+    this.isUp = true;
+  };
 }

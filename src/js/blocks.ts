@@ -48,7 +48,9 @@ export class ConductorBlock extends Block {
   }
 }
 
-export default {
+export const BlockList = {
   power: PowerBlock,
   conductor: ConductorBlock
 }
+
+export default BlockList;

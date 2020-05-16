@@ -1,36 +1,92 @@
 import * as PIXI from "pixi.js";
-import blocks, { IBlockLocation, BlockLocation } from "./blocks";
-import Keyboard from './keyboard';
+import Blocks, { IBlockLocation, BlockLocation } from "./blocks";
+import Keyboard from "./keyboard";
 
 const grid_size = 10;
 
+enum SwitchArrow {
+  Left,
+  Right,
+}
+
 class GameGrid {
-  #blocks: IBlockLocation[] = [];
-  #keyboard: Keyboard = null;
+  private blocks: IBlockLocation[] = [];
+  private keyboard: Keyboard = null;
+  private active_block_id: string = "power";
+  sprite: PIXI.Sprite = null;
   graphics: PIXI.Graphics = null;
   width: number = 600;
   height: number = 400;
 
   constructor(width: number, height: number) {
-    this.#blocks = [];
+    this.blocks = [];
     this.graphics = new PIXI.Graphics();
     this.graphics.x = 0;
     this.graphics.y = 0;
     this.width = width;
     this.height = height;
-    this.#keyboard = new Keyboard(37);
-    this.#keyboard.press = () => {
-      console.log("Left pressed");
-    }
+    this.keyboard = new Keyboard();
+    this.keyboard.press = this.onKeydown.bind(this);
+    this.generateSprite();
     this.redraw();
   }
 
-  redraw() {
+  private generateSprite() {
+    const sprite = new PIXI.Sprite();
+
+    sprite.width = this.width;
+    sprite.height = this.height;
+    sprite.scale.set(1);
+    sprite.interactive = true;
+    sprite.buttonMode = true;
+    sprite.addListener("pointermove", (evt) => {
+      const position = evt.data.global;
+
+      this.redraw();
+      this.highlight_grid(position.x, position.y);
+    });
+    sprite.addListener("pointerdown", (evt) => {
+      const position = evt.data.global;
+
+      this.addBlock(this.active_block_id, position.x, position.y);
+    });
+    sprite.addChild(this.graphics);
+
+    this.sprite = sprite;
+  }
+
+  private switchActiveBlock(arrow: SwitchArrow) {
+    const blockIds = Object.keys(Blocks);
+    let blockIdx = blockIds.findIndex((p) => p === this.active_block_id);
+
+    if (arrow === SwitchArrow.Left) blockIdx--;
+    if (arrow === SwitchArrow.Right) blockIdx++;
+
+    if (blockIdx < 0) blockIdx = blockIds.length - 1;
+    if (blockIdx >= blockIds.length) blockIdx = 0;
+
+    this.active_block_id = blockIds[blockIdx];
+  }
+
+  private onKeydown(evt: KeyboardEvent) {
+    switch (evt.keyCode) {
+      case 69: // E button
+        this.switchActiveBlock(SwitchArrow.Right);
+        break;
+      case 81: // Q button
+        this.switchActiveBlock(SwitchArrow.Left);
+        break;
+      default:
+        console.log(evt, this);
+    }
+  }
+
+  redraw(): void {
     this.redraw_grid();
     this.redraw_block();
   }
 
-  redraw_grid() {
+  private redraw_grid() {
     const x_count = Math.ceil(this.width / grid_size);
     const y_count = Math.ceil(this.height / grid_size);
 
@@ -52,15 +108,15 @@ class GameGrid {
     }
   }
 
-  redraw_block() {
-    this.#blocks.forEach((item: IBlockLocation) => {
+  private redraw_block() {
+    this.blocks.forEach((item: IBlockLocation) => {
       this.graphics.beginFill(item.block.color, 0.9);
       this.graphics.drawRect(item.x, item.y, grid_size, grid_size);
       this.graphics.endFill();
     });
   }
 
-  highlight_grid(real_x, real_y) {
+  private highlight_grid(real_x, real_y) {
     const x = Math.floor(real_x / grid_size) * grid_size;
     const y = Math.floor(real_y / grid_size) * grid_size;
 
@@ -69,22 +125,22 @@ class GameGrid {
     this.graphics.endFill();
   }
 
-  addBlock(blockId, real_x, real_y) {
+  private addBlock(blockId, real_x, real_y) {
     const x = Math.floor(real_x / grid_size) * grid_size;
     const y = Math.floor(real_y / grid_size) * grid_size;
     const is_exists = this.isBlockExists(x, y);
-    const block_class = blocks[blockId];
+    const block_class = Blocks[blockId];
     const block = new block_class();
 
-    if (is_exists) return;  // Avoid rendundant
+    if (is_exists) return; // Avoid rendundant
 
-    this.#blocks.push(new BlockLocation(block, x, y));
+    this.blocks.push(new BlockLocation(block, x, y));
   }
 
-  isBlockExists(x, y) {
-    const result = this.#blocks.filter(item => {
-      return item.x === x && item.y === y
-    })
+  private isBlockExists(x, y) {
+    const result = this.blocks.filter((item) => {
+      return item.x === x && item.y === y;
+    });
 
     return result.length > 0;
   }
@@ -92,25 +148,6 @@ class GameGrid {
 
 export default (w: number, h: number) => {
   const gameGrid = new GameGrid(w, h);
-  const sprite = new PIXI.Sprite();
 
-  sprite.width = w;
-  sprite.height = h;
-  sprite.scale.set(1);
-  sprite.interactive = true;
-  sprite.buttonMode = true;
-  sprite.addListener("pointermove", (evt) => {
-    const position = evt.data.global;
-
-    gameGrid.redraw();
-    gameGrid.highlight_grid(position.x, position.y);
-  });
-  sprite.addListener("pointerdown", (evt) => {
-    const position = evt.data.global;
-
-    gameGrid.addBlock("conductor", position.x, position.y);
-  });
-  sprite.addChild(gameGrid.graphics);
-
-  return sprite;
+  return gameGrid.sprite;
 };

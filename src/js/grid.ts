@@ -1,5 +1,10 @@
 import * as PIXI from "pixi.js";
-import Blocks, { IBlockLocation, BlockLocation } from "./blocks";
+import Blocks, {
+  IBlockLocation,
+  BlockLocation,
+  IBlockNeighbour,
+  BlockNeighbour,
+} from "./blocks";
 import Keyboard from "./keyboard";
 
 const grid_size = 10;
@@ -84,7 +89,9 @@ export class GameGrid {
 
   private updateBlock(): void {
     this.blocks.forEach((item) => {
-      item.block.onUpdate();
+      const neighbour = this.getNeighbour(item.x, item.y);
+
+      item.block.onUpdate(neighbour);
     });
   }
 
@@ -127,7 +134,12 @@ export class GameGrid {
   private redraw_block() {
     this.blocks.forEach((item: IBlockLocation) => {
       this.graphics.beginFill(item.block.getRenderColor(), 0.9);
-      this.graphics.drawRect(item.x, item.y, grid_size, grid_size);
+      this.graphics.drawRect(
+        item.getRealX(grid_size),
+        item.getRealY(grid_size),
+        grid_size,
+        grid_size
+      );
       this.graphics.endFill();
     });
   }
@@ -142,8 +154,8 @@ export class GameGrid {
   }
 
   private addBlock(blockId, real_x, real_y) {
-    const x = Math.floor(real_x / grid_size) * grid_size;
-    const y = Math.floor(real_y / grid_size) * grid_size;
+    const x = Math.floor(real_x / grid_size);
+    const y = Math.floor(real_y / grid_size);
     const is_exists = this.isBlockExists(x, y);
     const block_class = Blocks[blockId];
     const block = new block_class();
@@ -151,6 +163,43 @@ export class GameGrid {
     if (is_exists) return; // Avoid rendundant
 
     this.blocks.push(new BlockLocation(block, x, y));
+  }
+
+  private getMaxX(): number {
+    return Math.floor(this.width / grid_size);
+  }
+
+  private getMaxY(): number {
+    return Math.floor(this.height / grid_size);
+  }
+
+  private getNeighbour(x, y): IBlockNeighbour {
+    const params = [];
+    const max_x = this.getMaxX();
+    const max_y = this.getMaxY();
+
+    for (let i = -1; i <= 1; i++) {
+      for (let j = -1; j <= 1; j++) {
+        const new_x = x + j;
+        const new_y = y + i;
+
+        if (i === 0 && j === 0) continue;
+        if (new_x < 0 || new_y < 0 || new_x > max_x || new_y > max_y) {
+          params.push(null);
+          continue;
+        }
+
+        const block = this.blocks.find((p) => p.x === new_x && p.y === new_y);
+
+        if (block === undefined) {
+          params.push(null);
+        } else {
+          params.push(block.block);
+        }
+      }
+    }
+
+    return new BlockNeighbour(...params);
   }
 
   private isBlockExists(x, y) {
